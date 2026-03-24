@@ -1,0 +1,44 @@
+server:
+  port: 1110
+
+spring:
+  application:
+    name: apigateway
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+      httpclient:
+        connect-timeout: 60000
+        response-timeout: 60s
+      
+      routes:
+        - id: product-servic
+          uri: lb://PRODUCTSERVICE
+          predicates:
+            - Path=/api/v1/products/**
+          
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins: "http://localhost:5173"
+            allowedMethods:
+              - "GET"
+              - "POST"
+              - "PUT"
+              - "DELETE"
+              - "OPTIONS"
+              - "PATCH"
+            allowedHeaders: "*"
+            allowCredentials: true
+            maxAge: 3600
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/
+
+logging:
+  level:
+    root: INFO

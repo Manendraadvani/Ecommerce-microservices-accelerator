@@ -1,0 +1,40 @@
+server:
+  port: 1115
+
+spring:
+  application:
+    name: search-service
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/springbootmicroservicesjwtproduct
+    username: postgres
+    password: 1234
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: false
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/
+
+coveo:
+  search-api-key: xx188267da-bdc5-486d-bd8c-915a9b481ce3
+  push-api-key: xx70fcca7f-439e-44f7-b42d-9ba6f82ba125
+  search-endpoint: https://platform.cloud.coveo.com/rest/search/v2
+  search-hub: default
+  push-api-endpoint: https://api.cloud.coveo.com/push/v1
+  source-id: pviarovgwtkhh4fqvuod3k3sgmq-vjikpwffcyqcwipvnxjpkocana
+  organization-id: pviarovgwtkhh4fqvuod3k3sgmq
+  timeout: 30000
+  max-retries: 3
+
+logging:
+  level:
+    root: INFO

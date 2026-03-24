@@ -1,0 +1,35 @@
+server:
+  port: 1114
+
+spring:
+  application:
+    name: orderservice
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/springbootmicroservicesjwtorder
+    username: postgres
+    password: 1234
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: false
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/
+
+stripe:
+  secret-key: ${STRIPE_SECRET_KEY}
+  webhook-secret: ${STRIPE_WEBHOOK_SECRET}
+  payment:
+    return-url: http://localhost:5173/payment-return
+
+logging:
+  level:
+    root: INFO

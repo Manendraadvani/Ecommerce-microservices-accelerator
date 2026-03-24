@@ -1,0 +1,263 @@
+package com.springbootmicroservices.productservice.controller;
+
+import com.springbootmicroservices.productservice.model.common.CustomPage;
+import com.springbootmicroservices.productservice.model.common.CustomPaging;
+import com.springbootmicroservices.productservice.model.common.dto.response.CustomPagingResponse;
+import com.springbootmicroservices.productservice.model.common.dto.response.CustomResponse;
+import com.springbootmicroservices.productservice.model.product.Product;
+import com.springbootmicroservices.productservice.model.product.dto.request.ProductCreateRequest;
+import com.springbootmicroservices.productservice.model.product.dto.request.ProductPagingRequest;
+import com.springbootmicroservices.productservice.model.product.dto.request.ProductUpdateRequest;
+import com.springbootmicroservices.productservice.model.product.dto.response.ProductResponse;
+import com.springbootmicroservices.productservice.model.product.mapper.CustomPageToCustomPagingResponseMapper;
+import com.springbootmicroservices.productservice.model.product.mapper.ProductToProductResponseMapper;
+import com.springbootmicroservices.productservice.service.ProductCreateService;
+import com.springbootmicroservices.productservice.service.ProductDeleteService;
+import com.springbootmicroservices.productservice.service.ProductReadService;
+import com.springbootmicroservices.productservice.service.ProductUpdateService;
+import com.springbootmicroservices.productservice.service.ProductSearchService; // NEW IMPORT
+import com.springbootmicroservices.productservice.model.product.dto.request.PurchaseRequest;
+import com.springbootmicroservices.productservice.model.product.entity.ProductEntity; // NEW IMPORT
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.hibernate.validator.constraints.UUID;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+import java.util.List;
+import java.math.BigDecimal;
+
+/**
+ * REST controller named {@link ProductController} for managing products.
+ * Provides endpoints to create, read, update, and delete products.
+ */
+@RestController
+@RequestMapping("/api/v1/products")
+@RequiredArgsConstructor
+@Validated
+public class ProductController {
+
+    private final ProductCreateService productCreateService;
+    private final ProductReadService productReadService;
+    private final ProductUpdateService productUpdateService;
+    private final ProductDeleteService productDeleteService;
+    private final ProductSearchService productSearchService; // NEW: Inject search service
+
+    private final ProductToProductResponseMapper productToProductResponseMapper = ProductToProductResponseMapper.initialize();
+
+    private final CustomPageToCustomPagingResponseMapper customPageToCustomPagingResponseMapper =
+            CustomPageToCustomPagingResponseMapper.initialize();
+
+    /**
+     * Creates a new product. Requires ADMIN authority.
+     *
+     * @param productCreateRequest the request payload containing product details
+     * @return a {@link CustomResponse} containing the ID of the created product
+     */
+    @PostMapping
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    public CustomResponse<String> createProduct(@RequestBody @Valid final ProductCreateRequest productCreateRequest) {
+
+        final Product createdProduct = productCreateService
+                .createProduct(productCreateRequest);
+
+        return CustomResponse.successOf(createdProduct.getId());
+    }
+
+    /**
+     * Retrieves a product by its ID. Publicly accessible.
+     *
+     * @param productId the ID of the product to retrieve
+     * @return a {@link CustomResponse} containing the product details
+     */
+    @GetMapping("/{productId}")
+    public CustomResponse<ProductResponse> getProductById(@PathVariable @UUID final String productId) {
+
+        final Product product = productReadService.getProductById(productId);
+        final ProductResponse productResponse = productToProductResponseMapper.map(product);
+        return CustomResponse.successOf(productResponse);
+    }
+
+    /**
+     * Retrieves a paginated list of products based on the paging request. Publicly accessible.
+     *
+     * @param productPagingRequest the request payload containing paging information
+     * @return a {@link CustomResponse} containing the paginated list of products
+     */
+    @GetMapping
+    public CustomResponse<CustomPagingResponse<ProductResponse>> getProducts(
+            @RequestParam(name = "page", defaultValue = "1") int page,
+            @RequestParam(name = "size", defaultValue = "12") int size,
+            @RequestParam(name = "sortBy", required = false) String sortBy,
+            @RequestParam(name = "maxPrice", required = false) BigDecimal maxPrice
+    ) {
+        ProductPagingRequest productPagingRequest = new ProductPagingRequest();
+        CustomPaging pagination = new CustomPaging();
+        pagination.setPageNumber(page);
+        pagination.setPageSize(size);
+        productPagingRequest.setPagination(pagination);
+
+        if (sortBy != null && !sortBy.isEmpty()) {
+            productPagingRequest.setSortBy(sortBy);
+        }
+        if (maxPrice != null) {
+            productPagingRequest.setMaxPrice(maxPrice);
+        }
+
+        final CustomPage<Product> productPage = productReadService.getProducts(productPagingRequest);
+        final CustomPagingResponse<ProductResponse> productPagingResponse =
+                customPageToCustomPagingResponseMapper.toPagingResponse(productPage);
+        return CustomResponse.successOf(productPagingResponse);
+    }
+
+    /**
+     * Updates an existing product by its ID. Requires ADMIN authority.
+     *
+     * @param productUpdateRequest the request payload containing updated product details
+     * @param productId the ID of the product to update
+     * @return a {@link CustomResponse} containing the updated product details
+     */
+    @PutMapping("/{productId}")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    public CustomResponse<ProductResponse> updatedProductById(
+            @RequestBody @Valid final ProductUpdateRequest productUpdateRequest,
+            @PathVariable @UUID final String productId) {
+
+        final Product updatedProduct = productUpdateService.updateProductById(productId, productUpdateRequest);
+        final ProductResponse productResponse = productToProductResponseMapper.map(updatedProduct);
+        return CustomResponse.successOf(productResponse);
+    }
+
+    /**
+     * Deletes a product by its ID. Requires ADMIN authority.
+     *
+     * @param productId the ID of the product to delete
+     * @return a {@link CustomResponse} indicating successful deletion
+     */
+    @DeleteMapping("/{productId}")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    public CustomResponse<Void> deleteProductById(@PathVariable @UUID final String productId) {
+
+        productDeleteService.deleteProductById(productId);
+        return CustomResponse.SUCCESS;
+    }
+
+    /**
+     * Retrieves all products belonging to a specific category. Publicly accessible.
+     *
+     * @param category the category to filter products by
+     * @return a {@link CustomResponse} containing the list of products in the specified category
+     */
+    @GetMapping("/category/{category}")
+    public CustomResponse<List<ProductResponse>> getProductsByCategory(@PathVariable final String category) {
+
+        final List<Product> productsByCategory = productReadService.getProductsByCategory(category);
+        final List<ProductResponse> responses = productsByCategory.stream()
+                .map(productToProductResponseMapper::map)
+                .toList();
+        return CustomResponse.successOf(responses);
+    }
+
+    /**
+     * Processes a purchase request for a product. Requires authenticated user.
+     *
+     * @param productId the ID of the product to purchase
+     * @param purchaseRequest the request payload containing purchase quantity
+     * @return a {@link CustomResponse} containing the updated product details after purchase
+     */
+    @PostMapping("/{productId}/purchase")
+    @PreAuthorize("isAuthenticated()")
+    public CustomResponse<ProductResponse> purchaseProduct(
+            @PathVariable @UUID final String productId,
+            @RequestBody @Valid final PurchaseRequest purchaseRequest
+    ) {
+        final Product updatedProduct = productUpdateService.processPurchase(productId, purchaseRequest.getQuantity());
+        final ProductResponse productResponse = productToProductResponseMapper.map(updatedProduct);
+        return CustomResponse.successOf(productResponse);
+    }
+
+    // ==================== NEW SEARCH ENDPOINTS ====================
+
+    /**
+     * Search products by query string. Publicly accessible.
+     * Searches across name, author, category, and publisher.
+     *
+     * @param query the search query
+     * @return a {@link CustomResponse} containing the list of matching products
+     */
+    @GetMapping("/search")
+    public CustomResponse<List<ProductResponse>> searchProducts(@RequestParam("q") String query) {
+        final List<ProductEntity> searchResults = productSearchService.searchProducts(query);
+        
+        final List<ProductResponse> responses = searchResults.stream()
+                .map(entity -> {
+                    // Convert ProductEntity to Product domain model
+                    Product product = new Product();
+                    product.setId(entity.getId());
+                    product.setName(entity.getName());
+                    product.setAuthorName(entity.getAuthorName());
+                    product.setCategory(entity.getCategory());
+                    product.setUnitPrice(entity.getUnitPrice());
+                    product.setImageUrl(entity.getImageUrl());
+                    // Only set fields that exist in ProductEntity
+                    // Remove: product.setPublisher(entity.getPublisher());
+                    // Remove: product.setStockQuantity(entity.getStockQuantity());
+                    return productToProductResponseMapper.map(product);
+                })
+                .toList();
+        
+        return CustomResponse.successOf(responses);
+    }
+
+    /**
+     * Search products by name. Publicly accessible.
+     *
+     * @param name the product name to search
+     * @return a {@link CustomResponse} containing the list of matching products
+     */
+    @GetMapping("/search/name")
+    public CustomResponse<List<ProductResponse>> searchByName(@RequestParam("q") String name) {
+        final List<ProductEntity> searchResults = productSearchService.searchByName(name);
+        
+        final List<ProductResponse> responses = searchResults.stream()
+                .map(entity -> {
+                    Product product = new Product();
+                    product.setId(entity.getId());
+                    product.setName(entity.getName());
+                    product.setAuthorName(entity.getAuthorName());
+                    product.setUnitPrice(entity.getUnitPrice());
+                    product.setImageUrl(entity.getImageUrl());
+                    product.setCategory(entity.getCategory());
+                    return productToProductResponseMapper.map(product);
+                })
+                .toList();
+        
+        return CustomResponse.successOf(responses);
+    }
+
+    /**
+     * Search products by author. Publicly accessible.
+     *
+     * @param author the author name to search
+     * @return a {@link CustomResponse} containing the list of matching products
+     */
+    @GetMapping("/search/author")
+    public CustomResponse<List<ProductResponse>> searchByAuthor(@RequestParam("q") String author) {
+        final List<ProductEntity> searchResults = productSearchService.searchByAuthor(author);
+        
+        final List<ProductResponse> responses = searchResults.stream()
+                .map(entity -> {
+                    Product product = new Product();
+                    product.setId(entity.getId());
+                    product.setName(entity.getName());
+                    product.setAuthorName(entity.getAuthorName());
+                    product.setUnitPrice(entity.getUnitPrice());
+                    product.setImageUrl(entity.getImageUrl());
+                    product.setCategory(entity.getCategory());
+                    return productToProductResponseMapper.map(product);
+                })
+                .toList();
+        
+        return CustomResponse.successOf(responses);
+    }
+}

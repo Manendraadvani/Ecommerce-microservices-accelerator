@@ -1,0 +1,2 @@
+CREATE DATABASE springbootmicroservicesjwtproduct;
+CREATE DATABASE springbootmicroservicesjwtuser;
