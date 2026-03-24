@@ -1,28 +1,16 @@
-# Stage 1: Build stage
 FROM maven:3.9.6-eclipse-temurin-21-alpine AS build
-
-# Copy Maven files for dependency resolution
+WORKDIR /app
 COPY pom.xml ./
-COPY .mvn .mvn
-
-# Copy application source code
+# Remove the next line if you don't have a .mvn folder
+COPY .mvn .mvn 
+RUN mvn dependency:go-offline -B
 COPY src src
+RUN mvn clean package -DskipTests
 
-# Build the project and create the executable JAR
-RUN mvn clean install -DskipTests
-
-# Stage 2: Run stage
-FROM amazoncorretto:21
-
-# Set working directory
-WORKDIR eurekaserver
-
-# Copy the JAR file from the build stage
-COPY --from=build target/*.jar eurekaserver.jar
-
-# Expose port 8761
+FROM amazoncorretto:21-alpine
+WORKDIR /app
+COPY --from=build /app/target/*.jar app.jar
 EXPOSE 8761
 
-# Set the entrypoint command for running the application
-ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar eurekaserver.jar"]
-
+# CRITICAL: Eureka needs to know it's a server and not try to register with itself
+ENTRYPOINT ["java", "-jar", "app.jar", "--server.port=${PORT:-8761}", "--eureka.client.register-with-eureka=false", "--eureka.client.fetch-registry=false"]

@@ -1,27 +1,30 @@
 # Stage 1: Build stage
+# Using eclipse-temurin for the build stage as it's a reliable JDK 21 environment
 FROM maven:3.9.6-eclipse-temurin-21-alpine AS build
+WORKDIR /app
 
-# Copy Maven files for dependency resolution
+# 1. Copy only the pom.xml first to cache dependencies
 COPY pom.xml ./
-COPY .mvn .mvn
+# 2. Only copy .mvn if it exists in your local folder. If not, delete this line!
+# COPY .mvn .mvn 
 
-# Copy application source code
+# 3. Download dependencies (this layer is cached unless pom.xml changes)
+RUN mvn dependency:go-offline -B
+
+# 4. Copy source code and build
 COPY src src
-
-# Build the project and create the executable JAR
-RUN mvn clean install -DskipTests
+RUN mvn clean package -DskipTests
 
 # Stage 2: Run stage
-FROM amazoncorretto:21
+# amazoncorretto is great for AWS/Cloud environments
+FROM amazoncorretto:21-alpine
+WORKDIR /app
 
-# Set working directory
-WORKDIR productservice
+# Copy the built JAR from the builder stage
+COPY --from=build /app/target/*.jar app.jar
 
-# Copy the JAR file from the build stage
-COPY --from=build target/*.jar productservice.jar
+# Render needs a port to be exposed (default is usually 8080 or 10000)
+EXPOSE 8080
 
-# Expose port 1111
-EXPOSE 1111
-
-# Set the entrypoint command for running the application
-ENTRYPOINT ["java", "-jar", "productservice.jar"]
+# Dynamic entrypoint that respects the $PORT variable provided by Render
+ENTRYPOINT ["java", "-jar", "app.jar", "--server.port=${PORT:-8080}"]

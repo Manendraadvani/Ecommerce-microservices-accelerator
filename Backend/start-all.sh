@@ -2,6 +2,14 @@
 
 BASE_DIR="/Users/manendra.advani/Desktop/E-commerce Accelerator/Backend"
 
+# Load variables from .env file located in the root folder
+if [ -f "$BASE_DIR/../.env" ]; then
+    export $(grep -v '^#' "$BASE_DIR/../.env" | xargs)
+    echo "✅ Loaded environment variables from .env"
+else
+    echo "❌ Warning: .env file not found at $BASE_DIR/../.env"
+fi
+
 echo "🚀 Starting all microservices..."
 
 # Start Eureka Server first
