@@ -1,0 +1,27 @@
+# Dependency folders
+node_modules
+dist
+
+# Git files
+.git
+.gitignore
+
+# Docker files (optional, to avoid recursive context issues)
+Dockerfile
+.dockerignore
+
+# Environment variables
+.env
+.env.*
+*.local
+
+# OS/Editor/IDE files
+.DS_Store
+*.swp
+*.log
+.vscode
+
+# Project documentation (optional, exclude if not needed in image)
+README.md
+
+

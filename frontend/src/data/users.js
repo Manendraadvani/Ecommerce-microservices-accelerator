@@ -1,0 +1,58 @@
+const users = [
+  {
+    id: 1,
+    firstName: "Alice",
+    lastName: "Smith",
+    email: "alice@example.com",
+    phoneNumber: "123-456-7890",
+    userType: "user", 
+    userStatus: "active", 
+  },
+  {
+    id: 2,
+    firstName: "Bob",
+    lastName: "Johnson",
+    email: "bob@example.com",
+    phoneNumber: "987-654-3210",
+    userType: "admin",
+    userStatus: "active",
+  },
+  {
+    id: 3,
+    firstName: "Charlie",
+    lastName: "Brown",
+    email: "charlie@example.com",
+    phoneNumber: "555-666-7777",
+    userType: "user",
+    userStatus: "banned",
+  },
+  {
+    id: 4,
+    firstName: "Rohan",
+    lastName: "Mishra",
+    email: "rohan@example.com",
+    phoneNumber: "999-888-7777",
+    userType: "user",
+    userStatus: "inactive",
+  },
+  {
+    id: 5,
+    firstName: "Dhruv",
+    lastName: "Patel",
+    email: "dhruv@example.com",
+    phoneNumber: "888-123-4567",
+    userType: "admin",
+    userStatus: "active",
+  },
+  {
+    id: 6,
+    firstName: "Neha",
+    lastName: "Dawar",
+    email: "neha@gmail.com",
+    phoneNumber: "777-321-8888",
+    userType: "user",
+    userStatus: "active",
+  },
+];
+
+export default users;

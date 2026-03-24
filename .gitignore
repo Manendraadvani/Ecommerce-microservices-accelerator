@@ -1,0 +1,36 @@
+# Maven
+Backend/*/target/
+Backend/*/.mvn/
+Backend/*/mvnw
+Backend/*/mvnw.cmd
+**/HELP.md
+
+# Node
+Frontend/node_modules/
+Frontend/dist/
+Frontend/build/
+Frontend/.env.local
+Frontend/.env.production.local
+
+# IDE
+.idea/
+.vscode/
+*.iml
+.DS_Store
+
+# Logs
+*.log
+logs/
+
+# Temp files
+tmp/
+temp/
+*.tmp
+
+# Environment files (keep templates, ignore actual secrets)
+.env
+*.env
+
+# Database
+*.db
+*.sqlite
