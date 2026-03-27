@@ -3,12 +3,17 @@ spring:
     name: authservice
 
 server:
-  port: 1112
+  # Render dynamically assigns a port; locally it uses 1112
+  port: ${PORT:1112}
 
 eureka:
+  instance:
+    # Critical for Render: ensures services use internal IPs to find each other
+    prefer-ip-address: true
   client:
     serviceUrl:
-      defaultZone: http://localhost:8761/eureka/
+      # Points to your deployed Eureka server or local fallback
+      defaultZone: ${EUREKA_SERVICE_URL:http://localhost:8761/eureka/}
 
 logging:
   level:
