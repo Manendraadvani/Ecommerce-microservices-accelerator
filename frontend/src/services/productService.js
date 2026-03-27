@@ -1,7 +1,7 @@
 // src/services/productService.js
 
 // 1. Correct BASE_URL to include the service name for API Gateway routing
-const API_GATEWAY_URL = 'http://localhost:1110'; // Your API Gateway
+const API_GATEWAY_URL = import.meta.env.VITE_API_URL || 'http://localhost:1110'; // Your API Gateway
 const BASE_URL = `${API_GATEWAY_URL}/api/v1`;
 
 // Helper function to get the auth token (you'll need to implement this based on your auth flow)

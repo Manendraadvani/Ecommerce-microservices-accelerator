@@ -1,4 +1,4 @@
-import apiClient, { getAuthHeaders } from '../utils/apiclient';
+import apiClient, { getAuthHeaders } from '../utils/apiClient.jsx';
 
 const USER_API_URL = 'http://localhost:1110/api/v1';
 
