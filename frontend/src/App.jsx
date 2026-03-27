@@ -25,7 +25,7 @@ import BookDetails from "./pages/BookDetails";
 import Cart from "./pages/CartPage";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
-import Logout from "./pages/logout";
+import Logout from "./pages/Logout";
 import CheckoutPage from "./pages/CheckoutPage";
 import PaymentSuccessPage from "./pages/PaymentSuccessPage";
 
