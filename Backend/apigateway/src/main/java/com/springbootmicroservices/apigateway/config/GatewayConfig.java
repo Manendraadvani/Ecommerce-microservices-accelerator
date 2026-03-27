@@ -20,11 +20,9 @@ public class GatewayConfig {
 
     // Define the list of public endpoints
     private static final List<String> PUBLIC_ENDPOINTS = List.of(
-            "/api/v1/authentication/users/register",
-            "/api/v1/authentication/users/login",
-            "/api/v1/authentication/users/refresh-token",
-            "/api/v1/authentication/users/logout",
-            "/api/v1/search"
+        "/api/v1/authentication/**", // This covers login, register, and logout
+        "/api/v1/search/**",
+        "/api/v1/products/**" // If you want guests to browse books
     );
 
     /**

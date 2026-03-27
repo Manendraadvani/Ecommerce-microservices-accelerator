@@ -63,10 +63,21 @@ public class JwtAuthenticationFilter extends AbstractGatewayFilterFactory<JwtAut
     public GatewayFilter apply(Config config) {
         return (exchange, chain) -> {
             String path = exchange.getRequest().getURI().getPath();
+            log.info("Incoming request path: {}", path); // ADD THIS LOG
 
-            // Skip filtering for public endpoints
-            if (config != null && config.getPublicEndpoints().stream().anyMatch(path::startsWith)) {
-                return chain.filter(exchange);
+            // More robust matching logic
+            if (config != null && config.getPublicEndpoints() != null) {
+                boolean isPublic = config.getPublicEndpoints().stream()
+                    .anyMatch(endpoint -> {
+                        // Normalize path and endpoint for comparison
+                        String normalizedPath = path.endsWith("/") ? path.substring(0, path.length() - 1) : path;
+                        return normalizedPath.equalsIgnoreCase(endpoint);
+                    });
+
+                if (isPublic) {
+                    log.info("Path {} is public, skipping JWT filter", path);
+                    return chain.filter(exchange);
+                }
             }
 
             String authorizationHeader = exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
