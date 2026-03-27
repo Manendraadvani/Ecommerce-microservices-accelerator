@@ -15,10 +15,20 @@ spring:
         response-timeout: 60s
       
       routes:
+        - id: auth-service
+          uri: lb://AUTHSERVICE
+          predicates:
+            - Path=/api/v1/authentication/**
+        
         - id: product-service
           uri: lb://PRODUCTSERVICE
           predicates:
             - Path=/api/v1/products/**
+
+        - id: user-service
+          uri: lb://USERSERVICE
+          predicates:
+            - Path=/api/v1/users/**
           
       globalcors:
         cors-configurations:

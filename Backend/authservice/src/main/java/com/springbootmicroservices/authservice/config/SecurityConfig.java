@@ -55,36 +55,38 @@ public class SecurityConfig {
      */
     @Bean
     public SecurityFilterChain filterChain(
-            final HttpSecurity httpSecurity,
-            final CustomBearerTokenAuthenticationFilter customBearerTokenAuthenticationFilter,
-            final CustomAuthenticationEntryPoint customAuthenticationEntryPoint
+        final HttpSecurity httpSecurity,
+        final CustomAuthenticationEntryPoint customAuthenticationEntryPoint
     ) throws Exception {
-
-        httpSecurity
-                .exceptionHandling(customizer -> customizer.authenticationEntryPoint(customAuthenticationEntryPoint))
-                .cors(customizer -> customizer.configurationSource(corsConfigurationSource()))
-                .csrf(AbstractHttpConfigurer::disable)
-                .cors(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(customizer -> customizer
-                        .requestMatchers(HttpMethod.POST, "/api/v1/authentication/**").permitAll()
-                        .anyRequest().authenticated()
-                )
-                .sessionManagement(customizer -> customizer.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
-                //.addFilterBefore(customBearerTokenAuthenticationFilter, BearerTokenAuthenticationFilter.class);
+    httpSecurity
+            .exceptionHandling(customizer -> customizer.authenticationEntryPoint(customAuthenticationEntryPoint))
+            .csrf(AbstractHttpConfigurer::disable)
+            // Enable CORS using the source defined below
+            .cors(customizer -> customizer.configurationSource(corsConfigurationSource()))
+            .authorizeHttpRequests(customizer -> customizer
+                    // Ensure the register/login paths are wide open
+                    .requestMatchers("/api/v1/authentication/users/register").permitAll()
+                    .requestMatchers("/api/v1/authentication/users/login").permitAll()
+                    .anyRequest().authenticated()
+            )
+            .sessionManagement(customizer -> customizer.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
         return httpSecurity.build();
     }
 
-    /**
-     * Configures the CORS settings.
-     *
-     * @return the CORS configuration source
-     */
     private CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:5173","http://localhost:1110"));
+        // Use an environment variable for the production frontend URL
+        String frontendUrl = System.getenv("FRONTEND_URL");
+        configuration.setAllowedOrigins(List.of(
+                "http://localhost:5173", 
+                "http://localhost:1110",
+                frontendUrl != null ? frontendUrl : "https://ecommerce-frontend-fkf1.onrender.com"
+        ));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowCredentials(true);
+        
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
