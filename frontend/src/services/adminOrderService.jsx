@@ -1,5 +1,5 @@
 // src/services/adminOrderService.js
-import apiClient, { getAuthHeaders } from '../utils/apiclient';
+import apiClient, { getAuthHeaders } from '../utils/apiClient.jsx';
 import { toast } from 'react-toastify';
 
 /**
