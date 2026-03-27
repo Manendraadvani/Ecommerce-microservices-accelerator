@@ -1,5 +1,6 @@
 server:
-  port: 1110
+  # Render dynamically assigns a port; locally it uses 1110
+  port: ${PORT:1110}
 
 spring:
   application:
@@ -14,7 +15,7 @@ spring:
         response-timeout: 60s
       
       routes:
-        - id: product-servic
+        - id: product-service
           uri: lb://PRODUCTSERVICE
           predicates:
             - Path=/api/v1/products/**
@@ -22,7 +23,10 @@ spring:
       globalcors:
         cors-configurations:
           '[/**]':
-            allowedOrigins: "http://localhost:5173"
+            # Allows your local React/Vite dev server AND your future deployed frontend URL
+            allowedOrigins: 
+              - "http://localhost:5173"
+              - "${FRONTEND_URL:https://your-frontend-link.onrender.com}"
             allowedMethods:
               - "GET"
               - "POST"
@@ -35,9 +39,13 @@ spring:
             maxAge: 3600
 
 eureka:
+  instance:
+    # Essential for microservices to find each other on Render's internal network
+    prefer-ip-address: true
   client:
     serviceUrl:
-      defaultZone: http://localhost:8761/eureka/
+      # Points to your deployed Eureka server or local fallback
+      defaultZone: ${EUREKA_SERVICE_URL:http://localhost:8761/eureka/}
 
 logging:
   level:
