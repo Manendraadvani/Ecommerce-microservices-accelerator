@@ -1,4 +1,4 @@
-import apiClient, { getAuthHeaders } from '../utils/apiClient';
+import apiClient, { getAuthHeaders } from '../utils/apiClient.jsx';
  
 /**
 * Places a new order and returns the created order details.
