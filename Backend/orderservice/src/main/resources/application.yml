@@ -1,14 +1,16 @@
 server:
-  port: 1114
+  # Render dynamically assigns a port; locally it uses 1114
+  port: ${PORT:1114}
 
 spring:
   application:
     name: orderservice
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/springbootmicroservicesjwtorder
-    username: postgres
-    password: 1234
+    # Uses DATABASE_URL from Render/Supabase, or falls back to your local DB
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/springbootmicroservicesjwtorder}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:1234}
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -20,15 +22,20 @@ spring:
     show-sql: false
 
 eureka:
+  instance:
+    # Required for services to find each other on Render's internal network
+    prefer-ip-address: true
   client:
     serviceUrl:
-      defaultZone: http://localhost:8761/eureka/
+      # Points to your deployed Eureka server or local fallback
+      defaultZone: ${EUREKA_SERVICE_URL:http://localhost:8761/eureka/}
 
 stripe:
   secret-key: ${STRIPE_SECRET_KEY}
   webhook-secret: ${STRIPE_WEBHOOK_SECRET}
   payment:
-    return-url: http://localhost:5173/payment-return
+    # Uses the dynamic return URL from Render, or falls back to your local Vite server
+    return-url: ${PAYMENT_RETURN_URL:http://localhost:5173/payment-return}
 
 logging:
   level:
