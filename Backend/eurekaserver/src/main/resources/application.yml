@@ -9,6 +9,8 @@ eureka:
     hostname: ${RENDER_EXTERNAL_HOSTNAME:localhost}
     prefer-ip-address: false
   client:
+    registerWithEureka: false
+    fetchRegistry: false
     registry-fetch-interval-seconds: 10
   server:
     eviction-interval-timer-in-ms: 10000
