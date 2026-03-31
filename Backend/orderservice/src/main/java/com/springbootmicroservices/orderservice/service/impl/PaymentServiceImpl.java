@@ -12,42 +12,41 @@ import com.stripe.exception.StripeException;
 import com.stripe.model.checkout.Session;
 import com.stripe.param.checkout.SessionCreateParams;
 import jakarta.annotation.PostConstruct;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
+
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class PaymentServiceImpl implements PaymentService {
 
     private final OrderRepository orderRepository;
 
-    // The Stripe secret key is now hardcoded as requested.
-
-
     @Value("${stripe.secret-key}")
     private String stripeSecretKey;
+
+    @Value("${stripe.payment.return-url}")
+    private String returnUrl;
+
+    // Explicit constructor because @Value fields can't mix with @RequiredArgsConstructor
+    public PaymentServiceImpl(OrderRepository orderRepository) {
+        this.orderRepository = orderRepository;
+    }
 
     @PostConstruct
     public void init() {
         Stripe.apiKey = stripeSecretKey;
     }
 
-    // --- THIS IS THE MISSING METHOD THAT IS NOW ADDED ---
-    // It must exist to fulfill the contract of the PaymentService interface.
     @Override
     public PaymentResponse processPayment(PaymentRequestDto paymentRequest) {
-        log.warn("The 'processPayment' method was called but is not implemented for the Stripe redirect flow.");
-        // Throwing an exception is better than returning null, as it indicates this path is not supported.
-        throw new UnsupportedOperationException("The 'processPayment' method is not supported in this implementation.");
+        log.warn("processPayment called but not implemented for Stripe redirect flow.");
+        throw new UnsupportedOperationException("processPayment is not supported in this implementation.");
     }
-    // --- END OF ADDED METHOD ---
 
     @Override
     public String createStripeCheckoutSession(String orderId) {
@@ -55,29 +54,27 @@ public class PaymentServiceImpl implements PaymentService {
         OrderEntity order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new OrderNotFoundException("Order not found with ID: " + orderId));
 
-        // 2. Define the URLs Stripe will redirect to after payment
-        @Value("${stripe.payment.return-url}")
-        private String returnUrl;
-
-        // Then use:
+        // 2. Define redirect URLs using the env-driven returnUrl
         String successUrl = returnUrl + "/success?session_id={CHECKOUT_SESSION_ID}";
         String cancelUrl  = returnUrl + "/cancel";
 
-        // 3. Create a list of line items for Stripe
+        // 3. Create line items for Stripe
         List<SessionCreateParams.LineItem> lineItems = order.getItems().stream()
                 .map(item -> SessionCreateParams.LineItem.builder()
                         .setPriceData(SessionCreateParams.LineItem.PriceData.builder()
-                                .setCurrency("usd") // Set to Indian Rupees
-                                .setUnitAmount(item.getUnitPrice().multiply(new BigDecimal("100")).longValue())
-                                .setProductData(SessionCreateParams.LineItem.PriceData.ProductData.builder()
-                                        .setName(item.getProductName())
-                                        .build())
+                                .setCurrency("usd")
+                                .setUnitAmount(item.getUnitPrice()
+                                        .multiply(new BigDecimal("100")).longValue())
+                                .setProductData(
+                                        SessionCreateParams.LineItem.PriceData.ProductData.builder()
+                                                .setName(item.getProductName())
+                                                .build())
                                 .build())
                         .setQuantity(Long.valueOf(item.getQuantity()))
                         .build())
                 .collect(Collectors.toList());
 
-        // 4. Build the session parameters
+        // 4. Build session parameters
         SessionCreateParams params = SessionCreateParams.builder()
                 .addAllLineItem(lineItems)
                 .setMode(SessionCreateParams.Mode.PAYMENT)
@@ -87,7 +84,7 @@ public class PaymentServiceImpl implements PaymentService {
                 .build();
 
         try {
-            // 5. Create the session and get the redirect URL
+            // 5. Create Stripe session and return the redirect URL
             Session session = Session.create(params);
             return session.getUrl();
         } catch (StripeException e) {
