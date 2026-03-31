@@ -1,6 +1,7 @@
 import apiClient, { getAuthHeaders } from '../utils/apiClient.jsx';
 
-const USER_API_URL = 'http://localhost:1110/api/v1';
+const API_GATEWAY_URL = import.meta.env.VITE_API_URL || 'http://localhost:1110';
+const USER_API_URL = `${API_GATEWAY_URL}/api/v1`;
 
 export async function fetchMyDetails() {
     const token = localStorage.getItem('bookbazaar_accessToken');

@@ -68,7 +68,6 @@ public class SecurityConfig {
                 .exceptionHandling(customizer -> customizer.authenticationEntryPoint(customAuthenticationEntryPoint))
                 .cors(customizer -> customizer.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
-                .cors(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorize -> authorize
                         // Allow public access to GET product endpoints
                         .requestMatchers(HttpMethod.GET, "/api/v1/products").permitAll() // For getProducts (list with paging)
@@ -100,7 +99,12 @@ public class SecurityConfig {
      */
     private CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:5173")); // Allows all origins
+        String frontendUrl = System.getenv("FRONTEND_URL");
+        configuration.setAllowedOrigins(List.of(
+            "http://localhost:5173",
+            frontendUrl != null ? frontendUrl : "https://ecommerce-frontend-fkf1.onrender.com"
+        ));
+        configuration.setAllowCredentials(true);// Allows all origins
         // For production, you might want to restrict this to your frontend's URL:
         // configuration.setAllowedOrigins(List.of("http://localhost:3000", "https://yourfrontend.com"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")); // Explicitly list common methods

@@ -56,8 +56,12 @@ public class PaymentServiceImpl implements PaymentService {
                 .orElseThrow(() -> new OrderNotFoundException("Order not found with ID: " + orderId));
 
         // 2. Define the URLs Stripe will redirect to after payment
-        String successUrl = "http://localhost:5173/payment/success?session_id={CHECKOUT_SESSION_ID}";
-        String cancelUrl = "http://localhost:5173/payment/cancel";
+        @Value("${stripe.payment.return-url}")
+        private String returnUrl;
+
+        // Then use:
+        String successUrl = returnUrl + "/success?session_id={CHECKOUT_SESSION_ID}";
+        String cancelUrl  = returnUrl + "/cancel";
 
         // 3. Create a list of line items for Stripe
         List<SessionCreateParams.LineItem> lineItems = order.getItems().stream()

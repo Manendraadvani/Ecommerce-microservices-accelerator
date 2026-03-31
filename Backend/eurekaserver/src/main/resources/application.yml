@@ -1,16 +1,20 @@
-server:
-  port: 8761
-
 spring:
   application:
     name: eurekaserver
 
 eureka:
   instance:
-    hostname: localhost
+    lease-renewal-interval-in-seconds: 10      # heartbeat every 10s
+    lease-expiration-duration-in-seconds: 30
+    hostname: ${RENDER_EXTERNAL_HOSTNAME:localhost}
+    prefer-ip-address: false
   client:
-    registerWithEureka: false
-    fetchRegistry: false
+    registry-fetch-interval-seconds: 10
+  server:
+    eviction-interval-timer-in-ms: 10000
+    enable-self-preservation: false
+server:
+  port: ${PORT:8761}
 
 logging:
   level:

@@ -29,6 +29,11 @@ spring:
           uri: lb://USERSERVICE
           predicates:
             - Path=/api/v1/users/**
+
+        - id: order-service
+          uri: lb://ORDERSERVICE
+          predicates:
+            - Path=/api/v1/orders/**
           
       globalcors:
         cors-configurations:
@@ -52,7 +57,10 @@ eureka:
   instance:
     # Essential for microservices to find each other on Render's internal network
     prefer-ip-address: true
+    lease-renewal-interval-in-seconds: 10      # heartbeat every 10s
+    lease-expiration-duration-in-seconds: 30   # mark down after 30s silence
   client:
+    registry-fetch-interval-seconds: 10        # gateway re-fetches registry every 10s
     serviceUrl:
       # Points to your deployed Eureka server or local fallback
       defaultZone: ${EUREKA_SERVICE_URL:http://localhost:8761/eureka/}

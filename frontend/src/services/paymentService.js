@@ -1,6 +1,7 @@
 // src/services/paymentService.js
 
-const PAYMENT_BASE = "http://localhost:1110/ORDERSERVICE/api/v1/payments";
+const API_GATEWAY_URL = import.meta.env.VITE_API_URL || 'http://localhost:1110';
+const PAYMENT_BASE = `${API_GATEWAY_URL}/api/v1/payments`;
 
 export const processPayment = async (paymentRequest, token) => {
   const res = await fetch(`${PAYMENT_BASE}/process`, {

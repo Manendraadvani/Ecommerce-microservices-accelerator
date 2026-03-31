@@ -1,6 +1,8 @@
 spring:
   application:
     name: authservice
+  autoconfigure:
+    exclude: org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
 
 server:
   # Render dynamically assigns a port; locally it uses 1112
@@ -8,9 +10,12 @@ server:
 
 eureka:
   instance:
+    lease-renewal-interval-in-seconds: 10      # heartbeat every 10s
+    lease-expiration-duration-in-seconds: 30
     # Critical for Render: ensures services use internal IPs to find each other
     prefer-ip-address: true
   client:
+    registry-fetch-interval-seconds: 10  
     serviceUrl:
       # Points to your deployed Eureka server or local fallback
       defaultZone: ${EUREKA_SERVICE_URL:http://localhost:8761/eureka/}
