@@ -1,6 +1,16 @@
 spring:
   application:
     name: eurekaserver
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+      jakarta:
+        persistence:
+          sharedCache:
+            mode: NONE
+    hibernate:
+      ddl-auto: update
 
 eureka:
   instance:

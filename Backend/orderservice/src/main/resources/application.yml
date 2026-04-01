@@ -5,6 +5,16 @@ server:
 spring:
   application:
     name: orderservice
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+      jakarta:
+        persistence:
+          sharedCache:
+            mode: NONE
+    hibernate:
+      ddl-auto: update
 
   datasource:
     # Uses DATABASE_URL from Render/Supabase, or falls back to your local DB
@@ -12,6 +22,12 @@ spring:
     username: ${DB_USERNAME:postgres}
     password: ${DB_PASSWORD:1234}
     driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 2        # Max 2 connections per service
+      minimum-idle: 1             # Keep only 1 idle connection
+      connection-timeout: 30000   # 30s timeout
+      idle-timeout: 600000        # Release idle after 10min
+      max-lifetime: 1800000 
 
   jpa:
     hibernate:

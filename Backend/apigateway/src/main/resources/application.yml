@@ -5,6 +5,16 @@ server:
 spring:
   application:
     name: apigateway
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+      jakarta:
+        persistence:
+          sharedCache:
+            mode: NONE
+    hibernate:
+      ddl-auto: update
   cloud:
     gateway:
       discovery:
