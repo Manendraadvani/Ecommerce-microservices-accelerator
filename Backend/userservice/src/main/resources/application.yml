@@ -1,30 +1,19 @@
 spring:
   application:
     name: userservice
-  jpa:
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
-      jakarta:
-        persistence:
-          sharedCache:
-            mode: NONE
-    hibernate:
-      ddl-auto: update
 
   datasource:
-    # Uses DATABASE_URL from Render/Supabase, or falls back to your local DB
     url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/springbootmicroservicesjwtuser}
     username: ${DB_USERNAME:postgres}
     password: ${DB_PASSWORD:1234}
     driver-class-name: org.postgresql.Driver
     hikari:
-      maximum-pool-size: 2        # Max 2 connections per service
-      minimum-idle: 1             # Keep only 1 idle connection
-      connection-timeout: 30000   # 30s timeout
-      idle-timeout: 600000        # Release idle after 10min
+      maximum-pool-size: 2
+      minimum-idle: 1
+      connection-timeout: 30000
+      idle-timeout: 600000
       max-lifetime: 1800000
-  
+
   jpa:
     properties:
       hibernate:
@@ -38,18 +27,15 @@ spring:
 
 eureka:
   instance:
-    # Crucial for Render: Registers using the container's IP rather than hostname
     prefer-ip-address: true
-    lease-renewal-interval-in-seconds: 10      # heartbeat every 10s
-    lease-expiration-duration-in-seconds: 30   # mark down after 30s silence
+    lease-renewal-interval-in-seconds: 10
+    lease-expiration-duration-in-seconds: 30
   client:
-    registry-fetch-interval-seconds: 10        # service re-fetches registry every 10s
+    registry-fetch-interval-seconds: 10
     serviceUrl:
-      # Uses EUREKA_SERVICE_URL from Render, or falls back to local Eureka
       defaultZone: ${EUREKA_SERVICE_URL:http://localhost:8761/eureka/}
 
 server:
-  # Render automatically assigns a port via the PORT variable; locally uses 1113
   port: ${PORT:1113}
 
 logging:
