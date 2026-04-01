@@ -16,7 +16,7 @@ eureka:
   instance:
     lease-renewal-interval-in-seconds: 10      # heartbeat every 10s
     lease-expiration-duration-in-seconds: 30
-    hostname: ${RENDER_EXTERNAL_HOSTNAME:localhost}
+    hostname: ${EUREKA_INSTANCE_HOSTNAME:localhost}
     prefer-ip-address: false
   client:
     registerWithEureka: false
