@@ -5,45 +5,15 @@ server:
 spring:
   application:
     name: apigateway
-  jpa:
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
-      jakarta:
-        persistence:
-          sharedCache:
-            mode: NONE
-    hibernate:
-      ddl-auto: update
   cloud:
     gateway:
       discovery:
         locator:
           enabled: true
+          lower-case-service-id: true
       httpclient:
         connect-timeout: 60000
         response-timeout: 60s
-      
-      routes:
-        - id: auth-service
-          uri: lb://AUTHSERVICE
-          predicates:
-            - Path=/api/v1/authentication/**
-        
-        - id: product-service
-          uri: lb://PRODUCTSERVICE
-          predicates:
-            - Path=/api/v1/products/**
-
-        - id: user-service
-          uri: lb://USERSERVICE
-          predicates:
-            - Path=/api/v1/users/**
-
-        - id: order-service
-          uri: lb://ORDERSERVICE
-          predicates:
-            - Path=/api/v1/orders/**
           
       globalcors:
         cors-configurations:
@@ -51,7 +21,7 @@ spring:
             # Allows your local React/Vite dev server AND your future deployed frontend URL
             allowedOrigins: 
               - "http://localhost:5173"
-              - "${FRONTEND_URL:https://your-frontend-link.onrender.com}"
+              - "${FRONTEND_URL:https://ecommerce-frontend-fkf1.onrender.com}"
             allowedMethods:
               - "GET"
               - "POST"

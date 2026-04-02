@@ -10,69 +10,42 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import org.springframework.util.AntPathMatcher;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
 import java.util.List;
 
-/**
- * A custom Gateway filter named {@link JwtAuthenticationFilter} that handles JWT authentication for requests.
- * This filter validates JWT tokens for all requests except those to public endpoints.
- */
 @Component
 @Slf4j
 public class JwtAuthenticationFilter extends AbstractGatewayFilterFactory<JwtAuthenticationFilter.Config> {
 
-    /**
-     * Configuration class for JwtAuthenticationFilter.
-     * It holds a list of public endpoints that should not be filtered.
-     */
+    // ✅ AntPathMatcher correctly handles /** wildcards
+    private static final AntPathMatcher pathMatcher = new AntPathMatcher();
+
     public static class Config {
-        // List of public endpoints that should not be filtered
         private List<String> publicEndpoints;
 
-        /**
-         * Gets the list of public endpoints.
-         *
-         * @return the list of public endpoints
-         */
         public List<String> getPublicEndpoints() {
             return publicEndpoints;
         }
 
-        /**
-         * Sets the list of public endpoints.
-         *
-         * @param publicEndpoints the list of public endpoints to set
-         * @return the updated Config object
-         */
         public Config setPublicEndpoints(List<String> publicEndpoints) {
             this.publicEndpoints = publicEndpoints;
             return this;
         }
-
     }
 
-    /**
-     * Applies the JWT authentication filter to the gateway.
-     *
-     * @param config the configuration for the filter
-     * @return the gateway filter
-     */
     @Override
     public GatewayFilter apply(Config config) {
         return (exchange, chain) -> {
             String path = exchange.getRequest().getURI().getPath();
-            log.info("Incoming request path: {}", path); // ADD THIS LOG
+            log.info("Incoming request path: {}", path);
 
-            // More robust matching logic
+            // ✅ Use AntPathMatcher so /api/v1/authentication/** actually matches
             if (config != null && config.getPublicEndpoints() != null) {
                 boolean isPublic = config.getPublicEndpoints().stream()
-                    .anyMatch(endpoint -> {
-                        // Normalize path and endpoint for comparison
-                        String normalizedPath = path.endsWith("/") ? path.substring(0, path.length() - 1) : path;
-                        return normalizedPath.equalsIgnoreCase(endpoint);
-                    });
+                    .anyMatch(endpoint -> pathMatcher.match(endpoint, path));
 
                 if (isPublic) {
                     log.info("Path {} is public, skipping JWT filter", path);
@@ -80,12 +53,12 @@ public class JwtAuthenticationFilter extends AbstractGatewayFilterFactory<JwtAut
                 }
             }
 
-            String authorizationHeader = exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
+            String authorizationHeader = exchange.getRequest().getHeaders()
+                .getFirst(HttpHeaders.AUTHORIZATION);
 
             if (Token.isBearerToken(authorizationHeader)) {
                 String jwt = Token.getJwt(authorizationHeader);
 
-                // Inject UserServiceClient here
                 ApplicationContext context = exchange.getApplicationContext();
                 UserServiceClient userServiceClient = context.getBean(UserServiceClient.class);
 
@@ -98,7 +71,8 @@ public class JwtAuthenticationFilter extends AbstractGatewayFilterFactory<JwtAut
                         .flatMap(valid -> chain.filter(exchange))
                         .onErrorResume(e -> {
                             log.error("Token validation failed for path: {}", path, e);
-                            if (e instanceof FeignException.Unauthorized || e instanceof FeignException.Forbidden) {
+                            if (e instanceof FeignException.Unauthorized
+                                    || e instanceof FeignException.Forbidden) {
                                 exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
                             } else {
                                 exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -106,9 +80,11 @@ public class JwtAuthenticationFilter extends AbstractGatewayFilterFactory<JwtAut
                             return exchange.getResponse().setComplete();
                         });
             }
+
+            // ✅ If no token and not a public endpoint — return 401 instead of passing through
             log.warn("Missing or invalid Authorization header for path: {}", path);
-            return chain.filter(exchange);
+            exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+            return exchange.getResponse().setComplete();
         };
     }
-
 }
