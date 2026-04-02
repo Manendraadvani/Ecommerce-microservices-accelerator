@@ -15,8 +15,9 @@ spring:
       idle-timeout: 600000        # Release idle after 10min
       max-lifetime: 1800000
   jpa:
+    open-in-view: false
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
