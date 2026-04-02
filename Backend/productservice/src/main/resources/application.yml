@@ -8,13 +8,14 @@ spring:
     password: ${DB_PASSWORD:1234}
     driver-class-name: org.postgresql.Driver
     hikari:
-    maximum-pool-size: 2
-    minimum-idle: 1
-    connection-timeout: 30000
-    idle-timeout: 120000        # 2 min — was 600000 (10 min)
-    max-lifetime: 180000        # 3 min — was 1800000 (30 min)
-    keepalive-time: 60000       # ping Supabase every 1 min to keep connection alive
-    connection-test-query: SELECT 1
+      initialization-fail-timeout: 60000  # wait up to 60s for first connection
+      maximum-pool-size: 2
+      minimum-idle: 1
+      connection-timeout: 30000
+      idle-timeout: 120000
+      max-lifetime: 180000
+      keepalive-time: 60000
+      connection-test-query: SELECT 1
 
   jpa:
     open-in-view: false
