@@ -11,7 +11,7 @@ spring:
     password: ${DB_PASSWORD:1234}
     driver-class-name: org.postgresql.Driver
     hikari:
-      initialization-fail-timeout: 60000  # wait up to 60s for first connection
+      initialization-fail-timeout: -1  # wait up to 60s for first connection
       maximum-pool-size: 2
       minimum-idle: 1
       connection-timeout: 30000

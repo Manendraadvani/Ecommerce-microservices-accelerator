@@ -8,7 +8,7 @@ spring:
     password: ${DB_PASSWORD:1234}
     driver-class-name: org.postgresql.Driver
     hikari:
-      initialization-fail-timeout: 60000  # wait up to 60s for first connection
+      initialization-fail-timeout: -1  # wait up to 60s for first connection
       maximum-pool-size: 2
       minimum-idle: 1
       connection-timeout: 30000
@@ -24,7 +24,7 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
     hibernate:
-      ddl-auto: validate
+      ddl-auto: update
       naming:
         physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
     show-sql: false
